@@ -47,6 +47,16 @@ public interface GrammarListener extends ParseTreeListener {
 	 */
 	void exitFloating(GrammarParser.FloatingContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link GrammarParser#string}.
+	 * @param ctx the parse tree
+	 */
+	void enterString(GrammarParser.StringContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#string}.
+	 * @param ctx the parse tree
+	 */
+	void exitString(GrammarParser.StringContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link GrammarParser#variable_definition}.
 	 * @param ctx the parse tree
 	 */
@@ -106,6 +116,16 @@ public interface GrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitArgumentsType(GrammarParser.ArgumentsTypeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GrammarParser#function_call}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunction_call(GrammarParser.Function_callContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#function_call}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunction_call(GrammarParser.Function_callContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link GrammarParser#variable_assignment}.
 	 * @param ctx the parse tree

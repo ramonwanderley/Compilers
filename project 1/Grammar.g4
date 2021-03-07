@@ -8,14 +8,16 @@ file : (variable_definition ';' | function_definition) +; //  function_definitio
 TYPE_INT:'int';
 TYPE_FLOAT:'float';
 
+
 identifier: IDENTIFIER;
 integer: INT;
 floating: FLOAT;
+string: STRING;
 // TYPE_STRING:'string';
 
 variable_definition: type identifier '=' expression;
 
-// string: STRING;
+
 
 type: TYPE_INT | TYPE_FLOAT;
 
@@ -34,19 +36,29 @@ argumentsType
 	:  type identifier
 	;
 
+function_call
+	: identifier '(' expression (',' expression )* ')' 
+	;
+
 variable_assignment:  identifier ('*='| '/=' | '+=' | '=' | '-=') expression;
+
+
+
 
 expression: 
 	expression ( '*'| '/') expression | 
 	expression ('+'| '-') expression |
+	('+'| '-') expression |
 	identifier |
 	floating |
 	integer |
-	'(' expression ')'
+	string |
+	'(' expression ')' |
+	function_call
 	;
 
 statement: 
-	( variable_assignment | variable_definition | 'return' expression? )';'  ; 
+	( variable_assignment | variable_definition | 'return' expression? | expression )';'  ; 
 
 
 /* lexer */  
@@ -64,7 +76,7 @@ WHITESPACE: [ \t\n\r]+ -> skip;
 INT: NUMBER+;
 FLOAT: NUMBER+ '.' NUMBER+;
 IDENTIFIER: [a-zA-Z_]+[a-zA-Z0-9]*;
-// STRING: QUOTE .*? QUOTE;
+STRING: QUOTE .*? QUOTE;
 
 DEFAULT: .+? -> skip;
 
