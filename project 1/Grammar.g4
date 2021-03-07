@@ -3,52 +3,58 @@ grammar Grammar;
 
 /* parser */
 /* regra raiz */
-file : (variable_definition';')+; //  function_definition
+file : (variable_definition ';' | function_definition) +; //  function_definition
 
-
-variable_definition: type identifier '=' expression;
+TYPE_INT:'int';
+TYPE_FLOAT:'float';
 
 identifier: IDENTIFIER;
 integer: INT;
-// floating: FLOAT;
+floating: FLOAT;
+// TYPE_STRING:'string';
+
+variable_definition: type identifier '=' expression;
+
 // string: STRING;
 
-type: TYPE_INT
-	| TYPE_FLOAT
+type: TYPE_INT | TYPE_FLOAT;
+
+
+
+
+function_definition: type  identifier  arguments  body ;
+
+body: '{' statement* '}' ;
+
+arguments
+	: '(' (type identifier)? (',' type identifier)* ')'
+	;
+	
+argumentsType
+	:  type identifier
 	;
 
-
-
-
-// function_definition: type identifier '(' arguments? ')' body ;
-
-// body: '{'.*?'}' ;
-
-// arguments
-// 	: argumentsType (',' argumentsType)*
-// 	;
-	
-// argumentsType
-// 	:  type identifier
-// 	;
-
+variable_assignment:  identifier ('*='| '/=' | '+=' | '=' | '-=') expression;
 
 expression: 
 	expression ( '*'| '/') expression | 
-	expression ('+'| '-') expression | 
-	expression('*='| '/=') expression |
+	expression ('+'| '-') expression |
 	identifier |
-	// floating |
+	floating |
 	integer |
-	// string 
+	'(' expression ')'
 	;
+
+statement: 
+	( variable_assignment | variable_definition | 'return' expression? )';'  ; 
+
 
 /* lexer */  
 
-NUMBER : [0-9];
-CHAR: [a-z];
-// UNDER_LINE: '_';
-// QUOTE: '"';
+fragment NUMBER : [0-9];
+fragment CHAR: [a-zA-Z];
+UNDER_LINE: '_';
+QUOTE: '"';
 
 COMMENTBLOCK: '/*' .*? '*/' -> skip;
 COMMENTLINE: '//' .*? '\n' -> skip;
@@ -56,14 +62,9 @@ LIB: '#' .*? '\n' -> skip;
 WHITESPACE: [ \t\n\r]+ -> skip;
 
 INT: NUMBER+;
-// FLOAT: NUMBER+ '.' NUMBER+;
-IDENTIFIER: [a-zA-Z_]+ [a-zA-Z0-9]*;
+FLOAT: NUMBER+ '.' NUMBER+;
+IDENTIFIER: [a-zA-Z_]+[a-zA-Z0-9]*;
 // STRING: QUOTE .*? QUOTE;
-
-
-TYPE_INT:'int';
-TYPE_FLOAT:'float';
-// TYPE_STRING:'string';
 
 DEFAULT: .+? -> skip;
 
