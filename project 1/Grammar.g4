@@ -13,9 +13,12 @@ identifier: IDENTIFIER;
 integer: INT;
 floating: FLOAT;
 string: STRING;
+array:  identifier '[' expression ']';
+
+array_literal: '{' expression (',' expression)*'}';
 // TYPE_STRING:'string';
 
-variable_definition: type identifier '=' expression;
+variable_definition: type (identifier | array) '=' (expression | array_literal) (',' (identifier | array) '=' (expression | array_literal) )*;
 
 
 
@@ -40,16 +43,29 @@ function_call
 	: identifier '(' expression (',' expression )* ')' 
 	;
 
-variable_assignment:  identifier ('*='| '/=' | '+=' | '=' | '-=') expression;
+variable_assignment:  (identifier ('*='| '/=' | '+=' | '=' | '-=') expression) |
+	identifier('++'|'--');
 
 
+for_loop: 'for' '(' for_initializer? ';' for_condition? ';' for_step? ')' body;
 
+for_initializer: (variable_definition);
+
+for_condition: (expression);
+
+for_step: (variable_assignment);
+
+if_statement: 'if' '(' expression ')' ( body | statement ) else_statement*;
+
+else_statement: 'else' (body | statement);
 
 expression: 
+	identifier |
+	array |
 	expression ( '*'| '/') expression | 
 	expression ('+'| '-') expression |
 	('+'| '-') expression |
-	identifier |
+	expression ('<=' | '==' | '>=' | '<'| '>' | ) expression |
 	floating |
 	integer |
 	string |
@@ -58,7 +74,7 @@ expression:
 	;
 
 statement: 
-	( variable_assignment | variable_definition | 'return' expression? | expression )';'  ; 
+	( variable_assignment ';' | for_loop | if_statement | variable_definition ';' | 'return' expression?';' | expression';' ) ; 
 
 
 /* lexer */  

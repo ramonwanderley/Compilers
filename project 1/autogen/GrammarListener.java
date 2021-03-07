@@ -57,6 +57,26 @@ public interface GrammarListener extends ParseTreeListener {
 	 */
 	void exitString(GrammarParser.StringContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link GrammarParser#array}.
+	 * @param ctx the parse tree
+	 */
+	void enterArray(GrammarParser.ArrayContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#array}.
+	 * @param ctx the parse tree
+	 */
+	void exitArray(GrammarParser.ArrayContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GrammarParser#array_literal}.
+	 * @param ctx the parse tree
+	 */
+	void enterArray_literal(GrammarParser.Array_literalContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#array_literal}.
+	 * @param ctx the parse tree
+	 */
+	void exitArray_literal(GrammarParser.Array_literalContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link GrammarParser#variable_definition}.
 	 * @param ctx the parse tree
 	 */
@@ -136,6 +156,66 @@ public interface GrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitVariable_assignment(GrammarParser.Variable_assignmentContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GrammarParser#for_loop}.
+	 * @param ctx the parse tree
+	 */
+	void enterFor_loop(GrammarParser.For_loopContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#for_loop}.
+	 * @param ctx the parse tree
+	 */
+	void exitFor_loop(GrammarParser.For_loopContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GrammarParser#for_initializer}.
+	 * @param ctx the parse tree
+	 */
+	void enterFor_initializer(GrammarParser.For_initializerContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#for_initializer}.
+	 * @param ctx the parse tree
+	 */
+	void exitFor_initializer(GrammarParser.For_initializerContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GrammarParser#for_condition}.
+	 * @param ctx the parse tree
+	 */
+	void enterFor_condition(GrammarParser.For_conditionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#for_condition}.
+	 * @param ctx the parse tree
+	 */
+	void exitFor_condition(GrammarParser.For_conditionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GrammarParser#for_step}.
+	 * @param ctx the parse tree
+	 */
+	void enterFor_step(GrammarParser.For_stepContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#for_step}.
+	 * @param ctx the parse tree
+	 */
+	void exitFor_step(GrammarParser.For_stepContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GrammarParser#if_statement}.
+	 * @param ctx the parse tree
+	 */
+	void enterIf_statement(GrammarParser.If_statementContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#if_statement}.
+	 * @param ctx the parse tree
+	 */
+	void exitIf_statement(GrammarParser.If_statementContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GrammarParser#else_statement}.
+	 * @param ctx the parse tree
+	 */
+	void enterElse_statement(GrammarParser.Else_statementContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#else_statement}.
+	 * @param ctx the parse tree
+	 */
+	void exitElse_statement(GrammarParser.Else_statementContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link GrammarParser#expression}.
 	 * @param ctx the parse tree
