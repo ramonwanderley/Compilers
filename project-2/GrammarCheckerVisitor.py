@@ -120,6 +120,15 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#variable_definition.
     def visitVariable_definition(self, ctx:GrammarParser.Variable_definitionContext):
+        for i in range(len(ctx.identifier())):
+            token = ctx.identifier(i).IDENTIFIER().getPayload()
+            variable_name = ctx.identifier(i).getText()
+            variable_type = ctx.tyype().getText()
+            expression_type = self.visitExpression(ctx.expression(i)) 
+            
+            if(variable_type == Type.INT and expression_type == Type.FLOAT):
+                print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
+
         return self.visitChildren(ctx)
 
 
@@ -136,6 +145,8 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 text = ctx.identifier().getText()
                 token = ctx.identifier().IDENTIFIER().getPayload()
                 tyype = self.ids_defined.get(text, Type.VOID)
+            elif ctx.floating() != None:
+                return self.visit(ctx.floating())
         # elif len(ctx.expression()) == 1:
         #     print("== 1")
         # elif len(ctx.expression()) == 2:
@@ -182,7 +193,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#floating.
     def visitFloating(self, ctx:GrammarParser.FloatingContext):
-        return self.visitChildren(ctx)
+        return Type.FLOAT
 
 
     # Visit a parse tree produced by GrammarParser#string.
