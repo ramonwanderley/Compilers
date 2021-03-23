@@ -75,9 +75,11 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
         if(ret != None):
             expression = self.visit(ctx.expression())
             functionReturnVoid = self.ids_defined[self.inside_what_function][0] == 'void'
-            print("functionReturnVoid: ", functionReturnVoid, expression)
-            if(functionReturnVoid and len(ctx.expression().expression()) != 0 ):
-                print("ERROR: trying to return a non void expression from void function 'doing' in line 21 and column 1")
+            if(functionReturnVoid and expression != "void" ):
+                token = ret.getPayload()
+                line = token.line
+                column = token.column
+                print(f"ERROR: trying to return a non void expression from void function '{self.inside_what_function}' in line {line} and column {column}")
            
 
             
@@ -133,13 +135,13 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             if ctx.identifier() != None:  
                 text = ctx.identifier().getText()
                 token = ctx.identifier().IDENTIFIER().getPayload()
-                # print("here!", self.ids_defined , token, text)
-                # self.ids_defined[name] = tyype, , None
-                tyype = self.ids_defined.get(text, Type.VOID)
-        elif len(ctx.expression()) == 1:
-            print("== 1")
-        elif len(ctx.expression()) == 2:
-            print("== 2")
+                if(self.ids_defined[text] != None):
+                    tyype = self.ids_defined[text]
+                print("here!", tyype)
+        # elif len(ctx.expression()) == 1:
+        #     print("== 1")
+        # elif len(ctx.expression()) == 2:
+        #     print("== 2")
 
         return tyype
 
@@ -161,10 +163,11 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#arguments.
     def visitArguments(self, ctx:GrammarParser.ArgumentsContext):
-        print("Arguments: ", ctx.tyype()[0].getText())
+        # print("Arguments: ", ctx.tyype()[0].getText())
         for i in range(len(ctx.tyype())): # para cada expressão que este nó possui...
-
-        #     ident = ctx.expression(i) # ...pegue a i-ésima expressão
+            currentItem = ctx.identifier()[i].IDENTIFIER().getText()   
+            self.ids_defined[currentItem] = (ctx.tyype()[i].getText())
+    
 
         return self.visitChildren(ctx)
 
