@@ -135,9 +135,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             if ctx.identifier() != None:  
                 text = ctx.identifier().getText()
                 token = ctx.identifier().IDENTIFIER().getPayload()
-                if(self.ids_defined[text] != None):
-                    tyype = self.ids_defined[text]
-                print("here!", tyype)
+                tyype = self.ids_defined.get(text, Type.VOID)
         # elif len(ctx.expression()) == 1:
         #     print("== 1")
         # elif len(ctx.expression()) == 2:
