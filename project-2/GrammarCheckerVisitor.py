@@ -73,14 +73,20 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitStatement(self, ctx:GrammarParser.StatementContext):
         ret = ctx.RETURN()
         if(ret != None):
-            expression = self.visit(ctx.expression())
-            functionReturnVoid = self.ids_defined[self.inside_what_function][0] == 'void'
-            if(functionReturnVoid and expression != "void" ):
+            expression_tyype = self.visit(ctx.expression())
+            function_tyype = self.ids_defined[self.inside_what_function][0]
+            if(function_tyype != expression_tyype):
                 token = ret.getPayload()
                 line = token.line
                 column = token.column
-                print(f"ERROR: trying to return a non void expression from void function '{self.inside_what_function}' in line {line} and column {column}")
-           
+                if(function_tyype == Type.VOID):
+                    print(f"ERROR: trying to return a non void expression from void function '{self.inside_what_function}' in line {line} and column {column}")
+                elif(expression_tyype == Type.VOID):
+                    print(f"ERROR: trying to return void expression from function '{self.inside_what_function}' in line {line} and column {column}")
+                
+                
+
+            return
 
             
 
@@ -141,16 +147,39 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitExpression(self, ctx:GrammarParser.ExpressionContext):
         tyype = Type.VOID
         if len(ctx.expression()) == 0:
-            if ctx.identifier() != None:  
+            if ctx.integer() != None:
+                tyype = Type.STRING
+            elif ctx.floating() != None:
+                tyype = Type.FLOAT
+            elif ctx.string() != None:
+                tyype = Type.STRING
+            elif ctx.identifier() != None:  
                 text = ctx.identifier().getText()
                 token = ctx.identifier().IDENTIFIER().getPayload()
                 tyype = self.ids_defined.get(text, Type.VOID)
-            elif ctx.floating() != None:
-                return self.visit(ctx.floating())
-        # elif len(ctx.expression()) == 1:
-        #     print("== 1")
-        # elif len(ctx.expression()) == 2:
-        #     print("== 2")
+        elif len(ctx.expression()) == 1:
+            if ctx.OP != None:
+                text = ctx.OP.text
+                token = ctx.OP
+                tyype = self.visit(ctx.expression()[0])
+            else:
+                tyype = self.visit(ctx.expression()[0])
+        elif len(ctx.expression()) == 2:
+            text = ctx.OP.text
+            token = ctx.OP
+            #print("Binary Operator: '" + text + "' => line: " + str(token.line) + " , col: " + str(token.column))
+            left = self.visit(ctx.expression()[0])
+            right = self.visit(ctx.expression()[1])
+            # if ctx.OP.text in ['<', '<=', '==', '>=', '>', '!=']:
+            #     # if left != right:
+            #     #     # print("[ERROR]::[Good lord, what were you thinking trying to do a '{} {} {}' operation? Please, fix that type error. But do it right this time, yes?] ({},{})".format(left, ctx.OP.text, right, str(token.line), str(token.column)))
+            # elif ctx.OP.text in ['+', '-', '*', '/']:
+            #     if not(left == right or (left == Type.INT and right == Type.FLOAT)):
+            #         #print("left = {}".format(left))
+            #         #print("right = {}".format(right))
+            #         #print(self.ids_defined)
+            #         # print("[ERROR]::[Good lord, what were you thinking trying to do a '{} {} {}' operation? Please, fix that type error. But do it right this time, yes?] ({},{})".format(left, ctx.OP.text, right, str(token.line), str(token.column)))
+            tyype = right
 
         return tyype
 
@@ -188,7 +217,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#integer.
     def visitInteger(self, ctx:GrammarParser.IntegerContext):
-        return self.visitChildren(ctx)
+        return Type.INTEGER
 
 
     # Visit a parse tree produced by GrammarParser#floating.
@@ -198,7 +227,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#string.
     def visitString(self, ctx:GrammarParser.StringContext):
-        return self.visitChildren(ctx)
+        return Type.STRING
 
 
     # Visit a parse tree produced by GrammarParser#identifier.
