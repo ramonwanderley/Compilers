@@ -73,17 +73,17 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitStatement(self, ctx:GrammarParser.StatementContext):
         ret = ctx.RETURN()
         if(ret != None):
-            expression = self.visit(ctx.expression())
-            functionReturnVoid = self.ids_defined[self.inside_what_function][0] == 'void'
-            if(functionReturnVoid and expression != "void" ):
+            expression_tyype = self.visit(ctx.expression())
+            function_tyype = self.ids_defined[self.inside_what_function][0]
+            if(function_tyype != expression_tyype):
                 token = ret.getPayload()
                 line = token.line
                 column = token.column
-                print(f"ERROR: trying to return a non void expression from void function '{self.inside_what_function}' in line {line} and column {column}")
-           
-
-            
-
+                if(function_tyype == Type.VOID):
+                    print(f"ERROR: trying to return a non void expression from void function '{self.inside_what_function}' in line {line} and column {column}")
+                elif(expression_tyype == Type.VOID):
+                    print(f"ERROR: trying to return void expression from function '{self.inside_what_function}' in line {line} and column {column}")
+            return
         return self.visitChildren(ctx)
 
 
@@ -122,6 +122,8 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitVariable_definition(self, ctx:GrammarParser.Variable_definitionContext):
         for i in range(len(ctx.identifier())):
             token = ctx.identifier(i).IDENTIFIER().getPayload()
+            text = ctx.identifier(i).getText()
+            self.ids_defined[text] = ctx.tyype().getText()
             variable_name = ctx.identifier(i).getText()
             variable_type = ctx.tyype().getText()
             expression_type = self.visitExpression(ctx.expression(i)) 
@@ -139,8 +141,13 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
         variable_type = self.ids_defined.get(variable_name, Type.VOID)
         expression_type = self.visit(ctx.expression())
         if(variable_type == Type.INT and expression_type == Type.FLOAT):
-                print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
+            print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
 
+        if(variable_name == None):
+            line = token.line
+            column = token.column
+            print(f"ERROR: undefined variable '{name}' in line {line} and column {column}")
+        
         return self.visitChildren(ctx)
 
 
@@ -148,23 +155,36 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitExpression(self, ctx:GrammarParser.ExpressionContext):
         tyype = Type.VOID
         if len(ctx.expression()) == 0:
-            if ctx.identifier() != None:  
+            if ctx.integer() != None:
+                tyype = Type.INT
+            elif ctx.floating() != None:
+                tyype = Type.FLOAT
+            elif ctx.string() != None:
+                tyype = Type.STRING
+            elif ctx.identifier() != None:  
                 text = ctx.identifier().getText()
                 token = ctx.identifier().IDENTIFIER().getPayload()
                 tyype = self.ids_defined.get(text, Type.VOID)
-            if ctx.integer() != None:
-                return self.visit(ctx.integer())
-            elif ctx.floating() != None:
-                return self.visit(ctx.floating())
-        elif len(ctx.expression()) == 1:
-            return self.visitExpression(ctx.expression(0))
-        elif len(ctx.expression()) == 2:
-            left = self.visitExpression(ctx.expression(0))
-            right = self.visitExpression(ctx.expression(1))
-            if(left == Type.FLOAT or right == Type.FLOAT):
-                return Type.FLOAT
-            return Type.INT
 
+        elif len(ctx.expression()) == 1:
+            if ctx.OP != None:
+                text = ctx.OP.text
+                token = ctx.OP
+                tyype = self.visit(ctx.expression()[0])
+            else:
+                tyype = self.visit(ctx.expression()[0])
+        elif len(ctx.expression()) == 2:
+            text = ctx.OP.text
+            token = ctx.OP
+            left = self.visit(ctx.expression()[0])
+            right = self.visit(ctx.expression()[1])
+          
+            if(left == Type.FLOAT or right == Type.FLOAT):
+                tyype = Type.FLOAT            
+
+            tyype = Type.INT
+        else:
+            tyype = self.visitChildren(ctx)
         return tyype
 
 
@@ -201,7 +221,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#integer.
     def visitInteger(self, ctx:GrammarParser.IntegerContext):
-        return self.visitChildren(ctx)
+        return Type.INTEGER
 
 
     # Visit a parse tree produced by GrammarParser#floating.
@@ -211,7 +231,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#string.
     def visitString(self, ctx:GrammarParser.StringContext):
-        return self.visitChildren(ctx)
+        return Type.STRING
 
 
     # Visit a parse tree produced by GrammarParser#identifier.
