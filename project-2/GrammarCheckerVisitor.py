@@ -170,8 +170,9 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 text = ctx.identifier().getText()
                 token = ctx.identifier().IDENTIFIER().getPayload()
                 tyype = self.ids_defined.get(text, Type.VOID)
-            # elif ctx.function_call() != None:
-                # tyype = self.ids_defined.get(ctx.function_call().indetifi)
+            elif ctx.function_call() != None:
+                function_call = self.visit(ctx.function_call())
+                tyype = function_call
         elif len(ctx.expression()) == 1:
             if ctx.OP != None:
                 text = ctx.OP.text
@@ -206,7 +207,9 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#function_call.
     def visitFunction_call(self, ctx:GrammarParser.Function_callContext):
-        return self.visitChildren(ctx)
+        function_name = ctx.identifier().getText()
+        typpe_function = self.ids_defined[function_name][0]
+        return  typpe_function
 
 
     # Visit a parse tree produced by GrammarParser#arguments.
@@ -215,8 +218,6 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
         for i in range(len(ctx.tyype())): # para cada expressão que este nó possui...
             currentItem = ctx.identifier()[i].IDENTIFIER().getText()   
             self.ids_defined[currentItem] = (ctx.tyype()[i].getText())
-    
-
         return self.visitChildren(ctx)
 
 
