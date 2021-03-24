@@ -147,63 +147,57 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
         line = token.line
         variable_name = ctx.identifier().getText()
         variable_type = self.ids_defined.get(variable_name, Type.VOID)
-        expression_type = self.visit(ctx.expression())
-        # print(variable_name, variable_type, expression_type, line)
-        if(variable_type == Type.INT and expression_type == Type.FLOAT):
-            # print(self.ids_defined)
-            print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
 
         if(self.ids_defined.get(variable_name) == None):
             line = token.line
             column = token.column
             print(f"ERROR: undefined variable '{variable_name}' in line {line} and column {column}")
         
+       
+       
+        if(ctx.expression() != None):
+            expression_type = self.visit(ctx.expression())
+            if(variable_type == Type.INT and expression_type == Type.FLOAT):
+                print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
+            return
+        
+
+            
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by GrammarParser#expression.
     def visitExpression(self, ctx:GrammarParser.ExpressionContext):
-        tyype = Type.VOID
         if len(ctx.expression()) == 0:
             if ctx.integer() != None:
-                tyype = Type.INT
+                return Type.INT
             elif ctx.floating() != None:
-                tyype = Type.FLOAT
+                return Type.FLOAT
             elif ctx.string() != None:
-                tyype = Type.STRING
+                return Type.STRING
             elif ctx.identifier() != None:  
                 text = ctx.identifier().getText()
                 token = ctx.identifier().IDENTIFIER().getPayload()
-                tyype =  self.getVariableType(text)
-                # print("text: ", text, tyype)
+                return self.getVariableType(text)
             elif ctx.function_call() != None:
-                print("time")
                 function_call = self.visit(ctx.function_call())
-                tyype = function_call
+                return function_call
         elif len(ctx.expression()) == 1:
-            if ctx.OP != None:
-                text = ctx.OP.text
-                token = ctx.OP
-                tyype = self.visit(ctx.expression())
-            else:
-                tyype = self.visit(ctx.expression()[0])
+            return self.visit(ctx.expression()[0])
         elif len(ctx.expression()) == 2:
             left = self.visit(ctx.expression()[0])
             right = self.visit(ctx.expression()[1])
             if(left == Type.FLOAT or right == Type.FLOAT):
-                tyype = Type.FLOAT
+                return Type.FLOAT
             elif(left == Type.VOID or right == Type.VOID):
                 OP = ctx.OP.text
                 token = ctx.OP
                 line = token.line
                 column = token.column
                 print(f"ERROR: binary operator '{OP}' used on type void in line {line} and column {column}") 
-                tyype = Type.INT
-            else:      
-                tyype = Type.INT
-        else:
-            tyype = self.visitChildren(ctx)
-        return tyype
+                return Type.INT      
+            return Type.INT
+        return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by GrammarParser#array.
