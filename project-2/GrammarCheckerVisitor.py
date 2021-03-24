@@ -83,13 +83,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     print(f"ERROR: trying to return a non void expression from void function '{self.inside_what_function}' in line {line} and column {column}")
                 elif(expression_tyype == Type.VOID):
                     print(f"ERROR: trying to return void expression from function '{self.inside_what_function}' in line {line} and column {column}")
-                
-                
-
             return
-
-            
-
         return self.visitChildren(ctx)
 
 
@@ -128,6 +122,8 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitVariable_definition(self, ctx:GrammarParser.Variable_definitionContext):
         for i in range(len(ctx.identifier())):
             token = ctx.identifier(i).IDENTIFIER().getPayload()
+            text = ctx.identifier(i).getText()
+            self.ids_defined[text] = ctx.tyype().getText()
             variable_name = ctx.identifier(i).getText()
             variable_type = ctx.tyype().getText()
             expression_type = self.visitExpression(ctx.expression(i)) 
@@ -140,6 +136,14 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#variable_assignment.
     def visitVariable_assignment(self, ctx:GrammarParser.Variable_assignmentContext):
+        name = ctx.identifier().getText()
+        if( self.ids_defined.get(name) == None):
+            token = ctx.identifier().IDENTIFIER().getPayload()
+            line = token.line
+            column = token.column
+            print(f"ERROR: undefined variable '{name}' in line {line} and column {column}")
+        # print("self", self.ids_defined)
+        
         return self.visitChildren(ctx)
 
 
