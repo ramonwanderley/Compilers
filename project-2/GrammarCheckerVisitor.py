@@ -83,6 +83,8 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     print(f"ERROR: trying to return a non void expression from void function '{self.inside_what_function}' in line {line} and column {column}")
                 elif(expression_tyype == Type.VOID):
                     print(f"ERROR: trying to return void expression from function '{self.inside_what_function}' in line {line} and column {column}")
+                elif(function_tyype == Type.INT and expression_tyype == Type.FLOAT):
+                    print(f"WARNING: possible loss of information returning {expression_tyype} expression from {function_tyype} function '{self.inside_what_function}' in line {line} and column {column}")
             return
            
         return self.visitChildren(ctx)
@@ -307,9 +309,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
         expression_type = self.visit(ctx.expression())
 
         if(variable_type == Type.INT and expression_type == Type.FLOAT):
-            if(ctx.array() != None):
-                index = ctx.array().expression().getText()
-                print(f"WARNING: possible loss of information assigning float expression to int variable '{identifier}' in line {token.line} and column {token.column}")
+            print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
         elif(expression_type == Type.STRING and variable_type != Type.STRING):
             if(ctx.array() != None):
                 index = ctx.array().expression().getText()
