@@ -122,45 +122,66 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     # Visit a parse tree produced by GrammarParser#variable_definition.
     def visitVariable_definition(self, ctx:GrammarParser.Variable_definitionContext):
         for i in range(len(ctx.identifier())):
-            token = ctx.identifier(i).IDENTIFIER().getPayload()
-            line = token.line
-            column = token.column
-            text = ctx.identifier(i).getText()
-            self.ids_defined[text] = ctx.tyype().getText()
             variable_name = ctx.identifier(i).getText()
             variable_type = ctx.tyype().getText()
-            identifier_tyype = self.ids_defined[text]
             expression_type = self.visitExpression(ctx.expression(i)) 
-            if(identifier_tyype != expression_type):
-                if(variable_type == Type.INT and expression_type == Type.FLOAT):
-                    print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
-                elif(expression_type == Type.VOID):
-                    print(f"ERROR: trying to assign '{expression_type}' expression to variable '{text}' in line {line} and column {column}")
+
+            self.ids_defined[variable_name] = ctx.tyype().getText()
+
+            token = ctx.identifier(i).IDENTIFIER().getPayload()
+
+            if(variable_type == Type.INT and expression_type == Type.FLOAT):
+                print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
+            elif(expression_type == Type.STRING and variable_type != Type.STRING):
+                print(f"ERROR: trying to assign '{expression_type}' expression to variable '{variable_name}' in line {token.line} and column {token.column}")
+            elif(expression_type == Type.VOID and variable_type != Type.VOID):
+                print(f"ERROR: trying to assign '{expression_type}' expression to variable '{variable_name}' in line {token.line} and column {token.column}")
+    
+        for i in range(len(ctx.array())):
+            variable_name = ctx.array(i).identifier().getText()
+            variable_type = ctx.tyype().getText()
+
+            self.ids_defined[variable_name] = variable_type
+            
+            token = ctx.array(i).identifier().IDENTIFIER().getPayload()
+            
+            if(len(ctx.array_literal()) != 0):
+                for j in range(len(ctx.array_literal(i).expression())):
+                    expression_type = self.visitExpression(ctx.array_literal(i).expression(j))
+                    if(variable_type != expression_type):
+                        if(expression_type == Type.STRING):
+                            print(f"ERROR: trying to initialize '{expression_type}' expression to '{variable_type}' array '{variable_name}' at index {j} of array literal in line {token.line} and column {token.column}")
+                        elif(variable_type == Type.INT and expression_type == Type.FLOAT):
+                            print(f"WARNING: possible loss of information initializing {expression_type} expression to {variable_type} array '{variable_name}' at index {j} of array literal in line {token.line} and column {token.column}")
+                        elif(expression_type == Type.VOID):
+                            print(f"ERROR: trying to assign '{variable_type}' expression to array variable '{variable_name}' at index {j} in line {token.line} and column {token.column}")
         return
 
 
     # Visit a parse tree produced by GrammarParser#variable_assignment.
     def visitVariable_assignment(self, ctx:GrammarParser.Variable_assignmentContext):
-        token = ctx.identifier().IDENTIFIER().getPayload()
-        line = token.line
-        variable_name = ctx.identifier().getText()
-        variable_type = self.ids_defined.get(variable_name, Type.VOID)
+        if(ctx.identifier() != None):
+            variable_name = ctx.identifier().getText()
+            token = ctx.identifier().IDENTIFIER().getPayload()
+        else:
+            variable_name = ctx.array().identifier().getText()
+            token = ctx.array().identifier().IDENTIFIER().getPayload()
+
+        if(self.inside_what_function):
+            params = self.ids_defined[self.inside_what_function][1]
+            defined_ids = list(map(lambda x: x[0], params))
+            if(variable_name in defined_ids):
+                if(ctx.expression() != None):
+                    self._process_variable_assignment_error(ctx, variable_name, token)
+                return 
 
         if(self.ids_defined.get(variable_name) == None):
-            line = token.line
-            column = token.column
-            print(f"ERROR: undefined variable '{variable_name}' in line {line} and column {column}")
-        
-       
+            print(f"ERROR: undefined variable '{variable_name}' in line {token.line} and column {token.column}")
        
         if(ctx.expression() != None):
-            expression_type = self.visit(ctx.expression())
-            if(variable_type == Type.INT and expression_type == Type.FLOAT):
-                print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
+            self._process_variable_assignment_error(ctx, variable_name, token)
             return
         
-
-            
         return self.visitChildren(ctx)
 
 
@@ -174,9 +195,10 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             elif ctx.string() != None:
                 return Type.STRING
             elif ctx.identifier() != None:  
-                text = ctx.identifier().getText()
-                token = ctx.identifier().IDENTIFIER().getPayload()
-                return self.getVariableType(text)
+                variable_name = ctx.identifier().getText()
+                return self._variable_type(variable_name)
+            elif ctx.array() != None:
+                return self.visit(ctx.array())
             elif ctx.function_call() != None:
                 function_call = self.visit(ctx.function_call())
                 return function_call
@@ -200,7 +222,18 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#array.
     def visitArray(self, ctx:GrammarParser.ArrayContext):
-        return self.visitChildren(ctx)
+        array_name = ctx.identifier().getText()
+        array_type = self._variable_type(array_name)
+        token = ctx.identifier().IDENTIFIER().getPayload()
+
+        if(array_type is Type.VOID):
+            print(f"ERROR: undefined array '{array_name}' in line {token.line} and column {token.column}")
+
+        index_type = self.visit(ctx.expression())
+        if index_type != Type.INT:
+            print(f"ERROR: array expression must be an integer, but it is {index_type} in line {token.line} and column {token.column}")
+        
+        return array_type
 
 
     # Visit a parse tree produced by GrammarParser#array_literal.
@@ -212,10 +245,17 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitFunction_call(self, ctx:GrammarParser.Function_callContext):
         function_name = ctx.identifier().getText()
         typpe_function, params, a = self.ids_defined[function_name]
+
+        token = ctx.identifier().IDENTIFIER().getPayload()
+
+        given_params_length = len(ctx.expression())
+        expected_params_length = len(params)
+        if(given_params_length != expected_params_length):
+            print(f"ERROR: incorrect number of parameters for function '{function_name}' in line {token.line} and column {token.column}. Expecting {expected_params_length}, but {given_params_length} were given")
+            
         for i in range(len(params)):
             tyype_param_in_call =  self.visitExpression(ctx.expression()[i])
             tyype_param = params[i][1]
-            token = ctx.identifier().IDENTIFIER().getPayload()
             line = token.line
             column = token.column
             if(tyype_param == Type.INT and tyype_param_in_call == Type.FLOAT):
@@ -262,11 +302,26 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitIdentifier(self, ctx:GrammarParser.IdentifierContext):
         return self.visitChildren(ctx)
 
+    def _process_variable_assignment_error(self, ctx, variable_name, token):
+        variable_type = self._variable_type(variable_name)
+        expression_type = self.visit(ctx.expression())
 
-    def getVariableType(self, name):
+        if(variable_type == Type.INT and expression_type == Type.FLOAT):
+            if(ctx.array() != None):
+                index = ctx.array().expression().getText()
+                print(f"WARNING: possible loss of information assigning float expression to int variable '{identifier}' in line {token.line} and column {token.column}")
+        elif(expression_type == Type.STRING and variable_type != Type.STRING):
+            if(ctx.array() != None):
+                index = ctx.array().expression().getText()
+                print(f"ERROR: trying to assign 'char *' expression to array '{variable_name}' at index {index} in line {token.line} and column {token.column}")
+            else:
+                print(f"ERROR: trying to assign 'char *' expression to variable '{variable_name}' in line {token.line} and column {token.column}")
+    
+    def _variable_type(self, variable_name):
         if(self.inside_what_function):
-            function_tyype, params, null = self.ids_defined[self.inside_what_function]
-            for i in range(len(params)):
-                if(params[i][0] == name):
-                    return params[i][1]
-        return self.ids_defined.get(name, Type.VOID)
+            params = self.ids_defined[self.inside_what_function][1]
+            defined_ids = list(map(lambda x: x[0], params))
+            if(variable_name in defined_ids):
+                i = defined_ids.index(variable_name)
+                return params[i][1]
+        return self.ids_defined.get(variable_name, Type.VOID)
