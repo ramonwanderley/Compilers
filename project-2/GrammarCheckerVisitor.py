@@ -122,15 +122,20 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitVariable_definition(self, ctx:GrammarParser.Variable_definitionContext):
         for i in range(len(ctx.identifier())):
             token = ctx.identifier(i).IDENTIFIER().getPayload()
+            line = token.line
+            column = token.column
             text = ctx.identifier(i).getText()
             self.ids_defined[text] = ctx.tyype().getText()
             variable_name = ctx.identifier(i).getText()
             variable_type = ctx.tyype().getText()
+            identifier_tyype = self.ids_defined[text]
             expression_type = self.visitExpression(ctx.expression(i)) 
-            
-            if(variable_type == Type.INT and expression_type == Type.FLOAT):
-                print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
-
+            # print(identifier_tyype, expression_type)
+            if(identifier_tyype != expression_type):
+                if(variable_type == Type.INT and expression_type == Type.FLOAT):
+                    print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
+                elif(expression_type == Type.VOID):
+                    print(f"ERROR: trying to assign '{expression_type}' expression to variable '{text}' in line {line} and column {column}")
         return self.visitChildren(ctx)
 
 
@@ -143,10 +148,10 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
         if(variable_type == Type.INT and expression_type == Type.FLOAT):
             print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
 
-        if(variable_name == None):
+        if(self.ids_defined.get(variable_name) == None):
             line = token.line
             column = token.column
-            print(f"ERROR: undefined variable '{name}' in line {line} and column {column}")
+            print(f"ERROR: undefined variable '{variable_name}' in line {line} and column {column}")
         
         return self.visitChildren(ctx)
 
@@ -165,7 +170,8 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 text = ctx.identifier().getText()
                 token = ctx.identifier().IDENTIFIER().getPayload()
                 tyype = self.ids_defined.get(text, Type.VOID)
-
+            # elif ctx.function_call() != None:
+                # tyype = self.ids_defined.get(ctx.function_call().indetifi)
         elif len(ctx.expression()) == 1:
             if ctx.OP != None:
                 text = ctx.OP.text
