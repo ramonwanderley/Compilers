@@ -131,10 +131,8 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             variable_type = ctx.tyype().getText()
             identifier_tyype = self.ids_defined[text]
             expression_type = self.visitExpression(ctx.expression(i)) 
-            # print(identifier_tyype, expression_type)
             if(identifier_tyype != expression_type):
                 if(variable_type == Type.INT and expression_type == Type.FLOAT):
-                    # print(self.ids_defined)
                     print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
                 elif(expression_type == Type.VOID):
                     print(f"ERROR: trying to assign '{expression_type}' expression to variable '{text}' in line {line} and column {column}")
