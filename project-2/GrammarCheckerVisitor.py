@@ -138,7 +138,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
                 elif(expression_type == Type.VOID):
                     print(f"ERROR: trying to assign '{expression_type}' expression to variable '{text}' in line {line} and column {column}")
-        return self.visitChildren(ctx)
+        return
 
 
     # Visit a parse tree produced by GrammarParser#variable_assignment.
@@ -187,6 +187,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
         elif len(ctx.expression()) == 2:
             left = self.visit(ctx.expression()[0])
             right = self.visit(ctx.expression()[1])
+            # print("hello: ",left, right)
             if(left == Type.FLOAT or right == Type.FLOAT):
                 return Type.FLOAT
             elif(left == Type.VOID or right == Type.VOID):
@@ -194,8 +195,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 token = ctx.OP
                 line = token.line
                 column = token.column
-                print(f"ERROR: binary operator '{OP}' used on type void in line {line} and column {column}") 
-                return Type.INT      
+                print(f"ERROR: binary operator '{OP}' used on type void in line {line} and column {column}")  
             return Type.INT
         return self.visitChildren(ctx)
 
