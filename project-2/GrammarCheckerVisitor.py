@@ -134,6 +134,13 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#variable_assignment.
     def visitVariable_assignment(self, ctx:GrammarParser.Variable_assignmentContext):
+        token = ctx.identifier().IDENTIFIER().getPayload()
+        variable_name = ctx.identifier().getText()
+        variable_type = self.ids_defined.get(variable_name, Type.VOID)
+        expression_type = self.visit(ctx.expression())
+        if(variable_type == Type.INT and expression_type == Type.FLOAT):
+                print(f"WARNING: possible loss of information assigning float expression to int variable '{variable_name}' in line {token.line} and column {token.column}")
+
         return self.visitChildren(ctx)
 
 
@@ -145,12 +152,18 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 text = ctx.identifier().getText()
                 token = ctx.identifier().IDENTIFIER().getPayload()
                 tyype = self.ids_defined.get(text, Type.VOID)
+            if ctx.integer() != None:
+                return self.visit(ctx.integer())
             elif ctx.floating() != None:
                 return self.visit(ctx.floating())
-        # elif len(ctx.expression()) == 1:
-        #     print("== 1")
-        # elif len(ctx.expression()) == 2:
-        #     print("== 2")
+        elif len(ctx.expression()) == 1:
+            return self.visitExpression(ctx.expression(0))
+        elif len(ctx.expression()) == 2:
+            left = self.visitExpression(ctx.expression(0))
+            right = self.visitExpression(ctx.expression(1))
+            if(left == Type.FLOAT or right == Type.FLOAT):
+                return Type.FLOAT
+            return Type.INT
 
         return tyype
 
