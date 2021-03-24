@@ -181,14 +181,16 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             else:
                 tyype = self.visit(ctx.expression()[0])
         elif len(ctx.expression()) == 2:
-            text = ctx.OP.text
-            token = ctx.OP
             left = self.visit(ctx.expression()[0])
             right = self.visit(ctx.expression()[1])
-          
             if(left == Type.FLOAT or right == Type.FLOAT):
-                tyype = Type.FLOAT            
-
+                tyype = Type.FLOAT   
+            elif(left == Type.VOID or right == Type.VOID):
+                OP = ctx.OP.text
+                token = ctx.OP
+                line = token.line
+                column = token.column
+                print(f"ERROR: binary operator '{OP}' used on type void in line {line} and column {column}")       
             tyype = Type.INT
         else:
             tyype = self.visitChildren(ctx)
