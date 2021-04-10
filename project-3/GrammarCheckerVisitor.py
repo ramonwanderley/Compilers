@@ -73,12 +73,6 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     variable_name = identifier.getText()
                     self.ids_defined[variable_name] = self.ids_defined[variable_name][0], self.ids_defined[variable_name][1] , None 
             self.visit(current_statement)    
-            
-                
-                
-           
-        return #self.visitChildren(ctx)
-
 
     # Visit a parse tree produced by GrammarParser#else_statement.
     def visitElse_statement(self, ctx:GrammarParser.Else_statementContext):
@@ -143,8 +137,6 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#variable_assignment.
     def visitVariable_assignment(self, ctx:GrammarParser.Variable_assignmentContext):
-        # print("op:")
-       # op = ctx.OP.text
         if ctx.identifier() != None:
             name = ctx.identifier().getText()
             token = ctx.identifier().IDENTIFIER().getPayload()
@@ -168,7 +160,6 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             else:
                 cte_value = None
 
-        # ATUALIZAR O VALOR DA VARIAVEL OU DO VALOR NAQUELA POSICAO DO ARRAY POR MEIO DE CTE_VALUE
         op = ctx.OP.text
       
         if op == '++' or op == '--':
@@ -189,14 +180,14 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
               cte_value = expr_cte_value
             elif expr_cte_value == None or cte_value == None:
               cte_value = None
-            elif op == '/=':
-              cte_value = eval("{} {} {}".format(cte_value, '/', expr_cte_value))
-            elif op == '*=':
-              cte_value = eval("{} {} {}".format(cte_value, '*', expr_cte_value))
             elif op == '+=':
               cte_value = eval("{} {} {}".format(cte_value, '+', expr_cte_value))
             elif op == '-=':
               cte_value = eval("{} {} {}".format(cte_value, '-', expr_cte_value))
+            elif op == '/=':
+              cte_value = eval("{} {} {}".format(cte_value, '/', expr_cte_value))
+            elif op == '*=':
+              cte_value = eval("{} {} {}".format(cte_value, '*', expr_cte_value))
             else:
               cte_value = eval("{} {} {}".format(cte_value, op, expr_cte_value))
 
