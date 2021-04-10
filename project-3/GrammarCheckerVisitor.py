@@ -65,7 +65,19 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             if ctx.statement().variable_assignment().identifier() != None:
                 variable_name = ctx.statement().variable_assignment().identifier().getText()
                 self.ids_defined[variable_name] = self.ids_defined[variable_name][0], self.ids_defined[variable_name][1] , None 
-        return  #self.visitChildren(ctx)
+        elif ctx.body():
+            for i in range(len(ctx.body().statement())):
+                current_statement = ctx.body().statement(i)
+                if current_statement.variable_assignment() != None and current_statement.variable_assignment().identifier() != None:
+                    identifier = current_statement.variable_assignment().identifier()
+                    variable_name = identifier.getText()
+                    self.ids_defined[variable_name] = self.ids_defined[variable_name][0], self.ids_defined[variable_name][1] , None 
+            self.visit(current_statement)    
+            
+                
+                
+           
+        return #self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by GrammarParser#else_statement.
@@ -85,7 +97,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GrammarParser#for_condition.
     def visitFor_condition(self, ctx:GrammarParser.For_conditionContext):
-        return self.visitChildren(ctx)
+        return
 
 
     # Visit a parse tree produced by GrammarParser#for_step.
