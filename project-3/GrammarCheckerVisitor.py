@@ -94,7 +94,6 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitFor_initializer(self, ctx:GrammarParser.For_initializerContext):
         return self.visitChildren(ctx)
 
-
     # Visit a parse tree produced by GrammarParser#for_condition.
     def visitFor_condition(self, ctx:GrammarParser.For_conditionContext):
         return
@@ -263,7 +262,11 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 token = ctx.OP
                 tyype, cte_value = self.visit(ctx.expression(0))
                 cte_value = eval("{}{}".format(text, cte_value))
-                print("line "+str(token.line)+" Expression "+str(cte_value)+" simplified to: " + str(cte_value))
+                if ctx.expression(0).identifier() != None:
+                    print("line "+str(token.line)+" Expression "+ text + " " + str( self.ids_defined[ctx.expression(0).getText()][2] )+" simplified to: " + str(cte_value))
+                else:
+                    print("line "+str(token.line)+" Expression "+ text + " " + str(ctx.expression(0).getText())+" simplified to: " + str(cte_value))
+                # print("line "+str(token.line)+" Expression "+  str(cte_value)+" simplified to: " + str(cte_value))
                 if tyype == Type.VOID:
                     print("ERROR: unary operator '" + text + "' used on type void in line " + str(token.line) + " and column " + str(token.column))
 
