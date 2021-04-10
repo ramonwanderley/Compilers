@@ -248,7 +248,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
         elif len(ctx.expression()) == 1:
 
-            if ctx.OP != None: #unary operators
+            if ctx.OP != None: # unary operators
                 text = ctx.OP.text
                 token = ctx.OP
                 tyype, cte_value = self.visit(ctx.expression(0))
@@ -257,7 +257,6 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     print("line "+str(token.line)+" Expression "+ text + " " + str( self.ids_defined[ctx.expression(0).getText()][2] )+" simplified to: " + str(cte_value))
                 else:
                     print("line "+str(token.line)+" Expression "+ text + " " + str(ctx.expression(0).getText())+" simplified to: " + str(cte_value))
-                # print("line "+str(token.line)+" Expression "+  str(cte_value)+" simplified to: " + str(cte_value))
                 if tyype == Type.VOID:
                     print("ERROR: unary operator '" + text + "' used on type void in line " + str(token.line) + " and column " + str(token.column))
 
@@ -282,13 +281,11 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 tyype = Type.INT
 
             if left_cte_value != None and right_cte_value != None and left != Type.STRING and right != Type.STRING:
-                #print("{} {} {}".format(left_cte_value, text, right_cte_value))
                 cte_value = eval("{} {} {}".format(left_cte_value, text, right_cte_value))
                 print("line "+str(token.line)+" Expression "+str(left_cte_value)+" "+text+" "+str(right_cte_value)+" simplified to: " + str(  0 if cte_value == False else cte_value  ))
                 if isinstance(cte_value, bool):
                     cte_value = int(cte_value)
                 
-        # print(str(tyype) + ": " + str(cte_value))
         return tyype, cte_value
 
 
@@ -319,8 +316,6 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
         try:
             tyype, args, cte_value = self.ids_defined[name]
             if len(args) != len(ctx.expression()):
-                #for i in range(len(ctx.expression())):
-                #    print(ctx.expression(i).getText())
                 print("ERROR: incorrect number of parameters for function '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + ". Expecting " + str(len(args)) + ", but " + str(len(ctx.expression())) + " were given")
         except:
             print("ERROR: undefined function '" + name + "' in line " + str(token.line) + " and column " + str(token.column))
@@ -369,9 +364,3 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     # Visit a parse tree produced by GrammarParser#identifier.
     def visitIdentifier(self, ctx:GrammarParser.IdentifierContext):
         return self.visitChildren(ctx)
-
-
-    #del GrammarParser
-
-    #def aggregateResult(self, aggregate:Type, next_result:Type):
-        #return next_result if next_result != None else aggregate
