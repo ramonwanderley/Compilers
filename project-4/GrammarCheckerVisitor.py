@@ -16,9 +16,9 @@ import math
 # Função utilizada para transformar um valor float para um valor hexadecimal 
 # (o equivalente em hexadecimal dos valores dos bits de um float)
 def float_to_hex(f):
-    float_hex = hex(struct.unpack('<Q', struct.pack('<d', f))[0])
+    float_hex = hex(struct.unpack("<Q", struct.pack("<d", f))[0])
     if (int(float_hex[10],16) % 2 != 0):
-        if (float_hex[10] == 'f'):
+        if (float_hex[10] == "f"):
             float_hex = float(math.ceil(f))
         else:
             float_hex = float_hex[:10] + hex(int(float_hex[10],16) + 1)[2] + "0000000"
@@ -65,24 +65,24 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 
         cte_value = None
         ir_register = []
-        ir_register = []
-        print("define", llvm_type(tyype), '@' + name + '(', end = '')
+
+        print("define", llvm_type(tyype), "@" + name + "(", end = "")
         
         for idx, param in enumerate(params):
             if idx >= 1:
-                print(', ', end = '')
-            print(llvm_type(param[0]), '%' + str(idx), end = '')
-        print(') {')
+                print(", ", end = "")
+            print(llvm_type(param[0]), "%" + str(idx), end = "")
+        print(") {")
         for idx, alloc_param in enumerate(params):
-            print('\t%' + alloc_param[1], '= alloca', llvm_type(alloc_param[0]) + ', align 4')
-            print('\tstore', llvm_type(alloc_param[0]), '%' + str(idx) + ',',  llvm_type(alloc_param[0]) + '*', '%' + alloc_param[1] + ', align 4')
+            print("\t%" + alloc_param[1], "= alloca", llvm_type(alloc_param[0]) + ", align 4")
+            print("\tstore", llvm_type(alloc_param[0]), "%" + str(idx) + ",",  llvm_type(alloc_param[0]) + "*", "%" + alloc_param[1] + ", align 4")
             self.ids_defined[alloc_param[1]] = alloc_param[0], [], None, alloc_param[1]
         
         self.ids_defined[name] = tyype, params, cte_value, ir_register
         self.inside_what_function = name
         self.next_ir_register = len(params) + 1
         self.visit(ctx.body())
-        print('}\n')
+        print("}\n")
         return
 
 
@@ -99,12 +99,12 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             if ctx.expression() != None:
                 tyype, cte_value, ir_register = self.visit(ctx.expression())
                 if function_type == Type.INT and tyype == Type.FLOAT:
-                    err("WARNING: possible loss of information returning float expression from int function '" + self.inside_what_function + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                    err("WARNING: possible loss of information returning float expression from int function "" + self.inside_what_function + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                 elif function_type != Type.VOID and tyype == Type.VOID:
-                    err("ERROR: trying to return void expression from function '" + self.inside_what_function + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                    err("ERROR: trying to return void expression from function "" + self.inside_what_function + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                     exit(-1)
                 elif function_type == Type.VOID and tyype != Type.VOID:
-                    err("ERROR: trying to return a non void expression from void function '" + self.inside_what_function + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                    err("ERROR: trying to return a non void expression from void function "" + self.inside_what_function + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                     exit(-1)
 
                 if ir_register:
@@ -116,7 +116,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     print("\tret {} {}".format(llvm_type(tyype), str(cte_value)))
                     pass
             elif function_type != Type.VOID:
-                err("ERROR: trying to return void expression from function '" + self.inside_what_function + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                err("ERROR: trying to return void expression from function "" + self.inside_what_function + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                 exit(-1)
             else:
                 print("\tret void")
@@ -178,10 +178,10 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                         print("\tstore", llvm_type(tyype), 
                         "%" + str(ir_register) + ",",  llvm_type(tyype) + "*", "%" + name + ", align 4")
                     if expr_type == Type.VOID:
-                        err("ERROR: trying to assign void expression to variable '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                        err("ERROR: trying to assign void expression to variable "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                         exit(-1)
                     elif expr_type == Type.FLOAT and tyype == Type.INT:
-                        err("WARNING: possible loss of information assigning float expression to int variable '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                        err("WARNING: possible loss of information assigning float expression to int variable "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                 else:
                     self.global_vars.append(name)
                     if expr_type == Type.FLOAT:
@@ -206,10 +206,10 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 expr_types, cte_values_array, ir_registers_array = self.visit(ctx.array_literal(i))
                 for j in range(len(expr_types)):
                     if expr_types[j] == Type.VOID:
-                        err("ERROR: trying to initialize void expression to array '" + name + "' at index " + str(j) + " of array literal in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                        err("ERROR: trying to initialize void expression to array "" + name + "" at index " + str(j) + " of array literal in line " + str(token.line) + " and column " + str(token.column) + "\n")
                         exit(-1)
                     elif expr_types[j] == Type.FLOAT and tyype == Type.INT:
-                        err("WARNING: possible loss of information initializing float expression to int array '" + name + "' at index " + str(j) + " of array literal in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                        err("WARNING: possible loss of information initializing float expression to int array "" + name + "" at index " + str(j) + " of array literal in line " + str(token.line) + " and column " + str(token.column) + "\n")
             else:
                 # unitialized variables now get value 0
                 cte_values_array = [0] * array_length
@@ -229,7 +229,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             try:
                 tyype, _, cte_value, ir_register = self.ids_defined[name]
             except:
-                err("ERROR: undefined variable '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                err("ERROR: undefined variable "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                 exit(-1)
                 return
 
@@ -240,60 +240,40 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             try:
                 tyype, array_length, cte_values_array, ir_registers_array = self.ids_defined[name]
             except:
-                err("ERROR: undefined array '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                err("ERROR: undefined array "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                 exit(-1)
             array_index_cte, array_index_ir = self.visit(ctx.array())
             if array_index_cte == None:
                 cte_value = None
             else:
                 if array_index_cte < 0 or array_index_cte >= array_length:
-                    err("ERROR: array '" + name + "' index out of range in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                    err("ERROR: array "" + name + "" index out of range in line " + str(token.line) + " and column " + str(token.column) + "\n")
                     exit(-1)
                 else:
                     cte_value = cte_values_array[array_index_cte]
                     ir_register = ir_registers_array[array_index_cte]
-        
-        def printOp(action, ir_register, expr_cte_value, expr_ir_register, expr_type):
-            ids_defined = self.ids_defined[self.inside_what_function][3]
-            is_in_list = [b for a,b in ids_defined if a == name]
-            if is_in_list:
-                ir_register = is_in_list[0]
-            if expr_cte_value:
-                if expr_type == Type.FLOAT:
-                    print("\t%{} = {} {} %{}, {}".format(self.next_ir_register, action, llvm_type(tyype), ir_register, float_to_hex(expr_cte_value)))
-                else:
-                    print("\t%{} = {} {} %{}, {}".format(self.next_ir_register, action, llvm_type(tyype), ir_register, expr_cte_value))
-                ir_register = self.next_ir_register
-                self.next_ir_register += 1
-            elif expr_ir_register:
-                print("\t%{} = {} {} %{}, %{}".format(self.next_ir_register, action, llvm_type(tyype), ir_register, expr_ir_register))
-                ir_register = self.next_ir_register
-                self.next_ir_register += 1
-            print("\tstore {} %{}, {}* %{}, align 4".format(llvm_type(tyype), ir_register, llvm_type(tyype), name))
-            return ir_register
 
-
-        if op == '++' or op == '--':
+        if op == "++" or op == "--":
             if cte_value != None:
-                if op == '++':
+                if op == "++":
                     cte_value += 1
-                    printOp("add", ir_register, 1, None, Type.INT)
-                elif op == '--':
+                    process_operands(self, "add", ir_register, 1, None, Type.INT, tyype, name)
+                elif op == "--":
                     cte_value -= 1
-                    printOp("sub", ir_register, 1, None, Type.INT)
+                    process_operands(self, "sub", ir_register, 1, None, Type.INT, tyype, name)
             else:
-                if op == '++':
-                    printOp("add", ir_register, 1, None, Type.INT)
-                elif op == '--':
-                    printOp("sub", ir_register, 1, None, Type.INT)
+                if op == "++":
+                    process_operands(self, "add", ir_register, 1, None, Type.INT, tyype, name)
+                elif op == "--":
+                    process_operands(self, "sub", ir_register, 1, None, Type.INT, tyype, name)
                 cte_value = None
         else:
             expr_type, expr_cte_value, expr_ir_register = self.visit(ctx.expression())
             if expr_type == Type.VOID:
-                err("ERROR: trying to assign void expression to variable '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                err("ERROR: trying to assign void expression to variable "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                 exit(-1)
             elif expr_type == Type.FLOAT and tyype == Type.INT:
-                err("WARNING: possible loss of information assigning float expression to int variable '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                err("WARNING: possible loss of information assigning float expression to int variable "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
             tyype, _, _, _ = self.ids_defined[name]
             if not self.ids_defined[name][3]:
                 ir_register = self.next_ir_register
@@ -301,24 +281,24 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 print("\t%{} = load {}, {}* %{}, align 4".format(ir_register, llvm_type(tyype), llvm_type(tyype), name))
                 self.ids_defined[name] = self.ids_defined[name][0], self.ids_defined[name][1], self.ids_defined[name][2], ir_register
 
-            if op == '=':
+            if op == "=":
                 cte_value = expr_cte_value
                 print("\tstore {} %{}, {}* %{}, align 4".format(llvm_type(tyype), ir_register, llvm_type(tyype), name))
             if cte_value != None:
-                if op == '+=':
+                if op == "+=":
                     cte_value += expr_cte_value
-                    printOp("add", ir_register, expr_cte_value, expr_ir_register, expr_type)
-                elif op == '-=':
+                    process_operands(self, "add", ir_register, expr_cte_value, expr_ir_register, expr_type, tyype, name)
+                elif op == "-=":
                     cte_value -= expr_cte_value
-                    printOp("sub", ir_register, expr_cte_value, expr_ir_register, expr_type)
-                elif op == '*=':
+                    process_operands(self, "sub", ir_register, expr_cte_value, expr_ir_register, expr_type, tyype, name)
+                elif op == "*=":
                     cte_value *= expr_cte_value
                     print(">>>>> noiz")
-                    printOp("mul", ir_register, expr_cte_value, expr_ir_register, expr_type)
+                    process_operands(self, "mul", ir_register, expr_cte_value, expr_ir_register, expr_type, tyype, name)
                     print("<<<<< noiz")
-                elif op == '/=':
+                elif op == "/=":
                     cte_value /= expr_cte_value
-                    printOp("sdiv", ir_register, expr_cte_value, expr_ir_register, expr_type)
+                    process_operands(self, "sdiv", ir_register, expr_cte_value, expr_ir_register, expr_type, tyype, name)
            
         if ctx.identifier() != None:
             self.ids_defined[name] = tyype, -1, cte_value, ir_register
@@ -369,7 +349,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                         self.next_ir_register += 1
                 except:
                     token = ctx.identifier().IDENTIFIER().getPayload()
-                    err("ERROR: undefined variable '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                    err("ERROR: undefined variable "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                     exit(-1)
 
             elif ctx.array() != None:
@@ -378,13 +358,13 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     tyype, array_length, cte_values_array, ir_registers_array = self.ids_defined[name]
                 except:
                     token = ctx.array().identifier().IDENTIFIER().getPayload()
-                    err("ERROR: undefined array '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                    err("ERROR: undefined array "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                     exit(-1)
 
                 array_index_cte, array_index_ir = self.visit(ctx.array())
                 if array_index_cte != None:
                     if array_index_cte < 0 or array_index_cte >= array_length:
-                        err("ERROR:  array '" + name + "' index out of bounds in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                        err("ERROR:  array "" + name + "" index out of bounds in line " + str(token.line) + " and column " + str(token.column) + "\n")
                         exit(-1)
                     else:
                         cte_value = cte_values_array[array_index_cte]
@@ -400,10 +380,10 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 token = ctx.OP
                 tyype, cte_value, ir_register = self.visit(ctx.expression(0))
                 if tyype == Type.VOID:
-                    err("ERROR: unary operator '" + text + "' used on type void in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                    err("ERROR: unary operator "" + text + "" used on type void in line " + str(token.line) + " and column " + str(token.column) + "\n")
                     exit(-1)
                 elif cte_value != None:
-                    if text == '-':
+                    if text == "-":
                         cte_value = -cte_value
 
             else: # parentheses
@@ -416,105 +396,55 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             left_type, left_cte_value, left_ir_register = self.visit(ctx.expression(0))
             right_type, right_cte_value, right_ir_register = self.visit(ctx.expression(1))
             if left_type == Type.VOID or right_type == Type.VOID:
-                err("ERROR: binary operator '" + text + "' used on type void in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                err("ERROR: binary operator "" + text + "" used on type void in line " + str(token.line) + " and column " + str(token.column) + "\n")
                 exit(-1)
 
-            if text == '*' or text == '/' or text == '+' or text == '-':
+            if text == "*" or text == "/" or text == "+" or text == "-":
                 if left_type == Type.FLOAT or right_type == Type.FLOAT:
                     tyype = Type.FLOAT
                 else:
                     tyype = Type.INT
                 
-                def operationPrint(op, cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype):
-                    left = None
-                    right = None
-                    fcount = 0
-                    if left_type == Type.FLOAT or right_type == Type.FLOAT:
-                        fcount = 1
-                    if left_ir_register:
-                        left = "%{}".format(left_ir_register)
-                    elif left_type == Type.FLOAT or right_type == Type.FLOAT and left_cte_value:
-                        left = "{:.1f}".format(float(left_cte_value))
-                    elif left_cte_value:
-                        left = "{}".format(left_cte_value)
-                    if right_ir_register:
-                        right = "%{}".format(right_ir_register)
-                    elif right_type == Type.FLOAT or left_type == Type.FLOAT and right_cte_value:
-                        right = "{:.1f}".format(float(right_cte_value))
-                    elif right_cte_value:
-                        right = "{}".format(right_cte_value)
-                    if fcount > 0:
-                        op = "f"+op
-                    elif op == 'div':
-                        op = "s"+op
-                    
-                    if left_type == Type.FLOAT or right_type == Type.FLOAT:
-                        if left_type != Type.FLOAT and left_ir_register != None:
-                            print("\t%{} = sitofp {} %{} to float".format(self.next_ir_register, llvm_type(left_type), left_ir_register))
-                            left = "%{}".format(self.next_ir_register)
-                            self.next_ir_register += 1
-                        elif right_type != Type.FLOAT and right_ir_register != None:
-                            print("\t%{} = sitofp {} %{} to float".format(self.next_ir_register, llvm_type(right_type), right_ir_register))
-                            right = "%{}".format(self.next_ir_register)
-                            self.next_ir_register += 1
-                    if left_cte_value != None and right_cte_value != None:
-                        if 'mul' in op:
-                            cte_value = left_cte_value * right_cte_value
-                        elif 'div' in op:
-                            cte_value = left_cte_value / right_cte_value
-                        elif 'add' in op:
-                            cte_value = left_cte_value + right_cte_value
-                        elif 'sub' in op:
-                            cte_value = left_cte_value - right_cte_value
-                        ir_register = None
-                    elif left and right:
-                        tp = llvm_type(tyype)
-                        ir_register = self.next_ir_register
-                        print ("\t%{} = {} {} {}, {}".format(ir_register, op, tp, left, right))
-                        self.ids_defined[self.inside_what_function][3].append((ctx.getText(), self.next_ir_register))
-                        self.next_ir_register += 1
-                    return cte_value, ir_register
-                
-                if text == '*':
-                    cte_value, ir_register = operationPrint("mul", cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype)
-                elif text == '/':
-                    cte_value, ir_register = operationPrint("div", cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype)
-                elif text == '+':
-                    cte_value, ir_register = operationPrint("add", cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype)
-                elif text == '-':
-                    cte_value, ir_register = operationPrint("sub", cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype)
+                if text == "*":
+                    cte_value, ir_register = process_operations(self, "mul", cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype, ctx)
+                elif text == "/":
+                    cte_value, ir_register = process_operations(self, "div", cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype, ctx)
+                elif text == "+":
+                    cte_value, ir_register = process_operations(self, "add", cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype, ctx)
+                elif text == "-":
+                    cte_value, ir_register = process_operations(self, "sub", cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype, ctx)
                 if not (left_cte_value != None and right_cte_value != None):
                     cte_value = None
                 
             else:
                 tyype = Type.INT
                 if left_cte_value != None and right_cte_value != None:
-                    if text == '<':
+                    if text == "<":
                         if left_cte_value < right_cte_value:
                             cte_value = 1
                         else:
                             cte_value = 0
-                    elif text == '>':
+                    elif text == ">":
                         if left_cte_value > right_cte_value:
                             cte_value = 1
                         else:
                             cte_value = 0
-                    elif text == '==':
+                    elif text == "==":
                         if left_cte_value == right_cte_value:
                             cte_value = 1
                         else:
                             cte_value = 0
-                    elif text == '!=':
+                    elif text == "!=":
                         if left_cte_value != right_cte_value:
                             cte_value = 1
                         else:
                             cte_value = 0
-                    elif text == '<=':
+                    elif text == "<=":
                         if left_cte_value <= right_cte_value:
                             cte_value = 1
                         else:
                             cte_value = 0
-                    elif text == '>=':
+                    elif text == ">=":
                         if left_cte_value >= right_cte_value:
                             cte_value = 1
                         else:
@@ -563,10 +493,10 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 self.next_ir_register += 1
                 pass
             if len(args) != len(ctx.expression()):
-                err("ERROR: incorrect number of parameters for function '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + ". Expecting " + str(len(args)) + ", but " + str(len(ctx.expression())) + " were given" + "\n")
+                err("ERROR: incorrect number of parameters for function "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + ". Expecting " + str(len(args)) + ", but " + str(len(ctx.expression())) + " were given" + "\n")
                 exit(-1)
         except:
-            err("ERROR: undefined function '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+            err("ERROR: undefined function "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
             exit(-1)
 
         for i in range(len(ctx.expression())):
@@ -585,10 +515,10 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             
             if i < len(args):
                 if arg_type == Type.VOID:
-                    err("ERROR: void expression passed as parameter " + str(i) + " of function '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                    err("ERROR: void expression passed as parameter " + str(i) + " of function "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
                     exit(-1)
                 elif arg_type == Type.FLOAT and args[i] == Type.INT:
-                    err("WARNING: possible loss of information converting float expression to int expression in parameter " + str(i) + " of function '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
+                    err("WARNING: possible loss of information converting float expression to int expression in parameter " + str(i) + " of function "" + name + "" in line " + str(token.line) + " and column " + str(token.column) + "\n")
         
         if display_string:
             display_string += ")"
@@ -634,5 +564,73 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
     def visitIdentifier(self, ctx:GrammarParser.IdentifierContext):
         return self.visitChildren(ctx)
 
+# HELPER FUNCTIONS:
+def process_operands(self, action, ir_register, expr_cte_value, expr_ir_register, expr_type, tyype, name):
+    ids_defined = self.ids_defined[self.inside_what_function][3]
+    is_in_list = [b for a,b in ids_defined if a == name]
+    if is_in_list:
+        ir_register = is_in_list[0]
+    if expr_cte_value:
+        if expr_type == Type.FLOAT:
+            print("\t%{} = {} {} %{}, {}".format(self.next_ir_register, action, llvm_type(tyype), ir_register, float_to_hex(expr_cte_value)))
+        else:
+            print("\t%{} = {} {} %{}, {}".format(self.next_ir_register, action, llvm_type(tyype), ir_register, expr_cte_value))
+        ir_register = self.next_ir_register
+        self.next_ir_register += 1
+    elif expr_ir_register:
+        print("\t%{} = {} {} %{}, %{}".format(self.next_ir_register, action, llvm_type(tyype), ir_register, expr_ir_register))
+        ir_register = self.next_ir_register
+        self.next_ir_register += 1
+    print("\tstore {} %{}, {}* %{}, align 4".format(llvm_type(tyype), ir_register, llvm_type(tyype), name))
+    return ir_register
 
-# warning: the use of uninitialized variables is not being warned!
+def process_operations(self, op, cte_value, left_type, right_type, left_ir_register, right_ir_register, left_cte_value, right_cte_value, tyype, ctx):
+    left = None
+    right = None
+    fcount = 0
+    if left_type == Type.FLOAT or right_type == Type.FLOAT:
+        fcount = 1
+    if left_ir_register:
+        left = "%{}".format(left_ir_register)
+    elif left_type == Type.FLOAT or right_type == Type.FLOAT and left_cte_value:
+        left = "{:.1f}".format(float(left_cte_value))
+    elif left_cte_value:
+        left = "{}".format(left_cte_value)
+    if right_ir_register:
+        right = "%{}".format(right_ir_register)
+    elif right_type == Type.FLOAT or left_type == Type.FLOAT and right_cte_value:
+        right = "{:.1f}".format(float(right_cte_value))
+    elif right_cte_value:
+        right = "{}".format(right_cte_value)
+    if fcount > 0:
+        op = "f"+op
+    elif op == "div":
+        op = "s"+op
+    
+    if left_type == Type.FLOAT or right_type == Type.FLOAT:
+        if left_type != Type.FLOAT and left_ir_register != None:
+            print("\t%{} = sitofp {} %{} to float".format(self.next_ir_register, llvm_type(left_type), left_ir_register))
+            left = "%{}".format(self.next_ir_register)
+            self.next_ir_register += 1
+        elif right_type != Type.FLOAT and right_ir_register != None:
+            print("\t%{} = sitofp {} %{} to float".format(self.next_ir_register, llvm_type(right_type), right_ir_register))
+            right = "%{}".format(self.next_ir_register)
+            self.next_ir_register += 1
+    if left_cte_value != None and right_cte_value != None:
+        if "mul" in op:
+            cte_value = left_cte_value * right_cte_value
+        elif "div" in op:
+            cte_value = left_cte_value / right_cte_value
+        elif "add" in op:
+            cte_value = left_cte_value + right_cte_value
+        elif "sub" in op:
+            cte_value = left_cte_value - right_cte_value
+        ir_register = None
+    elif left and right:
+        tp = llvm_type(tyype)
+        ir_register = self.next_ir_register
+        print ("\t%{} = {} {} {}, {}".format(ir_register, op, tp, left, right))
+        self.ids_defined[self.inside_what_function][3].append((ctx.getText(), self.next_ir_register))
+        self.next_ir_register += 1
+
+    return cte_value, ir_register
