@@ -171,9 +171,9 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
             name = ctx.identifier(i).getText()
             token = ctx.identifier(i).IDENTIFIER().getPayload()
             if ctx.expression(i) != None:
-                expr_type, cte_value, ir_register = self.visit(ctx.expression(i))
                 if self.inside_what_function:
                     f.write("\t%" + name + " = alloca " + llvm_type(tyype) + ", align 4\n")
+                    expr_type, cte_value, ir_register = self.visit(ctx.expression(i))
                     if tyype == Type.FLOAT and cte_value:
                         f.write("\tstore " + llvm_type(tyype) + " " + float_to_hex(cte_value) + ", " +  llvm_type(tyype) + "* %" + name + ", align 4\n")
                     elif cte_value:
@@ -187,6 +187,7 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     elif expr_type == Type.FLOAT and tyype == Type.INT:
                         err("WARNING: possible loss of information assigning float expression to int variable '" + name + "' in line " + str(token.line) + " and column " + str(token.column) + "\n")
                 else:
+                    expr_type, cte_value, ir_register = self.visit(ctx.expression(i))
                     self.global_vars.append(name)
                     if expr_type == Type.FLOAT:
                         f.write("@" + name +  " = global " + llvm_type(expr_type) +" "+ float_to_hex(cte_value)+"\n")
@@ -258,6 +259,10 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     ir_register = ir_registers_array[array_index_cte]
 
         if op == "++" or op == "--":
+            tyype, _, _, _ = self.ids_defined[name]
+            ir_register = self.next_ir_register
+            self.next_ir_register += 1
+            f.write("\t%{} = load {}, {}* %{}, align 4".format(ir_register, llvm_type(tyype), llvm_type(tyype), name)+"\n")
             if cte_value != None:
                 if op == "++":
                     cte_value += 1
@@ -569,9 +574,6 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
 # HELPER FUNCTIONS:
 def process_operands(self, action, ir_register, expr_cte_value, expr_ir_register, expr_type, tyype, name):
     ids_defined = self.ids_defined[self.inside_what_function][3]
-    is_in_list = [b for a,b in ids_defined if a == name]
-    if is_in_list:
-        ir_register = is_in_list[0]
     if expr_cte_value:
         if expr_type == Type.FLOAT:
             f.write("\t%{} = {} {} %{}, {}".format(self.next_ir_register, action, llvm_type(tyype), ir_register, float_to_hex(expr_cte_value))+"\n")

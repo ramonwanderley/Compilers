@@ -12,18 +12,19 @@ define i32 @scalar(i32 %0, i32 %1) {
 	%b = alloca i32, align 4
 	store i32 %1, i32* %b, align 4
 	%3 = load i32, i32* %b, align 4
-	%4 = add i32 %3, 1
-	store i32 %4, i32* %b, align 4
-	%6 = load i32, i32* %a, align 4
-	%7 = mul i32 %6, %6
-	%8 = add i32 %7, %3
-	%9 = sub i32 %3, %6
-	%10 = mul i32 %9, %3
-	%11 = add i32 %8, %10
-	%5 = call i32 @half(i32 11)
-	%12 = add i32 %5, 3
-	%13 = sdiv i32 %12, 2
-	ret i32 %13
+	%4 = load i32, i32* %b, align 4
+	%5 = add i32 %4, 1
+	store i32 %5, i32* %b, align 4
+	%7 = load i32, i32* %a, align 4
+	%8 = mul i32 %7, %7
+	%9 = add i32 %8, %3
+	%10 = sub i32 %3, %7
+	%11 = mul i32 %10, %3
+	%12 = add i32 %9, %11
+	%6 = call i32 @half(i32 12)
+	%13 = add i32 %6, 3
+	%14 = sdiv i32 %13, 2
+	ret i32 %14
 }
 
 define float @fscalar(float %0, float %1) {
@@ -31,6 +32,7 @@ define float @fscalar(float %0, float %1) {
 	store float %0, float* %a, align 4
 	%b = alloca float, align 4
 	store float %1, float* %b, align 4
+	%result = alloca float, align 4
 	%3 = load float, float* %a, align 4
 	%4 = load float, float* %b, align 4
 	%5 = fadd float %3, %4
@@ -40,7 +42,6 @@ define float @fscalar(float %0, float %1) {
 	%9 = fmul float %7, %8
 	%10 = fdiv float %3, %4
 	%11 = fdiv float %9, %10
-	%result = alloca float, align 4
 	store float %11, float* %result, align 4
 	%12 = load float, float* %result, align 4
 	ret float %12
